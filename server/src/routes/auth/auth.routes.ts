@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth";
-import { asyncHandler } from "../../utils/asyncHandler";
 import { clerkClient, getAuth } from "@clerk/express";
-import { AppError } from "../../utils/AppError";
+
+import { requireAuth } from "../../middleware/auth";
 import { User } from "../../models/User";
+import { AppError } from "../../utils/AppError";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { ok } from "../../utils/envelope";
 
 export const authRouter = Router();
@@ -20,15 +21,20 @@ authRouter.post(
 
     const clerkUser = await clerkClient.users.getUser(userId);
 
-    const extractEmailFromUserInfo = clerkUser.emailAddresses.find((item) => item.id === clerkUser.primaryEmailAddressId) || clerkUser.emailAddresses[0];
+    const primaryEmail = clerkUser.emailAddresses.find((item) => item.id === clerkUser.primaryEmailAddressId) ?? clerkUser.emailAddresses[0];
 
-    const email = extractEmailFromUserInfo.emailAddress;
+    if (!primaryEmail) {
+      throw new AppError(400, "No email address found for this account.");
+    }
+
+    const email = primaryEmail.emailAddress;
 
     const fullName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim();
 
-    const name = fullName || clerkUser.username;
+    const name = fullName || clerkUser.username || email.split("@")[0];
 
     const raw = process.env.ADMIN_EMAILS || "";
+
     const adminEmails = new Set(
       raw
         .split(",")
@@ -37,14 +43,13 @@ authRouter.post(
     );
 
     const existingUser = await User.findOne({ clerkUserId: userId });
-    const shouldBeAdmin = email ? adminEmails.has(email.toLowerCase()) : false;
+
+    const shouldBeAdmin = adminEmails.has(email.toLowerCase());
 
     const nextRole = existingUser?.role === "admin" ? "admin" : shouldBeAdmin ? "admin" : existingUser?.role || "user";
 
-    const newlyCreatedDbUser = await User.findOneAndUpdate(
-      {
-        clerkUserId: userId,
-      },
+    const dbUser = await User.findOneAndUpdate(
+      { clerkUserId: userId },
       {
         clerkUserId: userId,
         email,
@@ -52,20 +57,24 @@ authRouter.post(
         role: nextRole,
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         setDefaultsOnInsert: true,
       },
     );
 
+    if (!dbUser) {
+      throw new AppError(500, "Failed to synchronize user.");
+    }
+
     res.status(200).json(
       ok({
         user: {
-          id: newlyCreatedDbUser._id,
-          clerkUserId: newlyCreatedDbUser.clerkUserId,
-          email: newlyCreatedDbUser.email,
-          name: newlyCreatedDbUser.name,
-          role: newlyCreatedDbUser.role,
+          id: dbUser._id,
+          clerkUserId: dbUser.clerkUserId,
+          email: dbUser.email,
+          name: dbUser.name,
+          role: dbUser.role,
         },
       }),
     );
