@@ -10,6 +10,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import { clerkMiddleware } from "@clerk/express";
 import { authRouter } from "./routes/auth/auth.routes";
 import { adminProductRouter } from "./routes/admin/product.routes";
+import { customerProductRouter } from "./routes/customer/product.routes";
 
 async function startServer() {
   await connectDB();
@@ -37,6 +38,8 @@ async function startServer() {
   });
 
   app.use("/auth", authRouter);
+
+  app.use("/customer", customerProductRouter);
 
   app.use("/admin", adminProductRouter);
 
