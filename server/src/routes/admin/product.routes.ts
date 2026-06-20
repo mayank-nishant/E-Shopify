@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
 import { getDbUserFromReq, requireAdmin } from "../../middleware/auth";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { Category } from "../../models/Category";
@@ -185,6 +186,13 @@ adminProductRouter.put(
     const sizes = req.body.sizes || [];
     const coverImagePublicId = String(req.body.coverImagePublicId || "").trim();
 
+    let keptImages: UploadedImage[] = [];
+    try {
+      keptImages = JSON.parse(req.body.existingImages || "[]");
+    } catch {
+      keptImages = [];
+    }
+
     requireText(title, "Title is required");
     requireText(description, "Description is required");
     requireText(category, "Category is required");
@@ -200,29 +208,37 @@ adminProductRouter.put(
     const productDoc = await Product.findById(productId);
     const product = requireFound(productDoc, "Product not found");
 
+    const keptPublicIds = new Set(keptImages.map((img) => img.publicId));
+    const removedImages = (product.images as UploadedImage[]).filter(
+      (img) => !keptPublicIds.has(img.publicId),
+    );
+
+    if (removedImages.length > 0) {
+      await Promise.all(
+        removedImages.map((img) =>
+          cloudinary.uploader.destroy(img.publicId),
+        ),
+      );
+    }
+
     const files = (req.files as Express.Multer.File[]) || [];
+    const uploadedNewImages = await uploadManyBuffersToCloudinary(
+      files.map((file) => file.buffer),
+    );
 
-    const uploadNewImages = await uploadManyBuffersToCloudinary(files.map((file) => file.buffer));
-
-    const newlyAddedImages = uploadNewImages.map((image) => ({
+    const newlyAddedImages: UploadedImage[] = uploadedNewImages.map((image) => ({
       url: image.url,
       publicId: image.publicId,
       isCover: false,
     }));
 
-    let existingImages: UploadedImage[] = product.images.map((img: UploadedImage) => ({
-      url: img.url,
-      publicId: img.publicId,
-      isCover: img.isCover,
-    }));
-
-    const mergedImages: UploadedImage[] = [...existingImages, ...newlyAddedImages];
+    const mergedImages: UploadedImage[] = [...keptImages, ...newlyAddedImages];
 
     if (!mergedImages.length) {
-      throw new AppError(400, "Atleast one img is needed");
+      throw new AppError(400, "At least one image is needed");
     }
 
-    const finalImages: UploadedImage[] = mergedImages.map((image: UploadedImage, index) => ({
+    const finalImages: UploadedImage[] = mergedImages.map((image, index) => ({
       url: image.url,
       publicId: image.publicId,
       isCover: coverImagePublicId ? image.publicId === coverImagePublicId : index === 0,

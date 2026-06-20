@@ -97,7 +97,7 @@ export function ProductsTable({
                         product.status === "active" ? "default" : "secondary"
                       }
                     >
-                      {product.status}
+                      {product.status === "active" ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>{product.stock}</TableCell>

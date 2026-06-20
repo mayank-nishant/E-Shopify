@@ -34,6 +34,10 @@ function getEmptyForm(): ProductFormState {
   };
 }
 
+function getTotalImagesCount(form: ProductFormState) {
+  return form.existingImages.length + form.newFiles.length;
+}
+
 export function getCoverImage(images: ProductImage[] = []) {
   return images.find((img) => img.isCover) ?? images[0];
 }
@@ -89,8 +93,7 @@ function validateForm(form: ProductFormState) {
     throw new Error("Stock cannot be negative.");
   }
 
-  const totalImages =
-    form.existingImages.length + form.newFiles.length;
+  const totalImages = getTotalImagesCount(form);
 
   if (totalImages === 0) {
     throw new Error("Please upload at least one product image.");
@@ -171,6 +174,8 @@ export function useProductForm({
   const addFiles = useCallback((files: FileList | null) => {
     if (!files?.length) return;
 
+    setError(null);
+
     setForm((prev) => {
       const existing = new Set(
         prev.newFiles.map(
@@ -184,28 +189,38 @@ export function useProductForm({
       );
 
       const availableSlots =
-        MAX_IMAGES - prev.existingImages.length;
+        MAX_IMAGES - prev.existingImages.length - prev.newFiles.length;
 
       return {
         ...prev,
         newFiles: [
           ...prev.newFiles,
-          ...uniqueFiles,
-        ].slice(0, availableSlots),
+          ...uniqueFiles.slice(0, availableSlots),
+        ],
       };
     });
   }, []);
 
   const removeExistingImage = useCallback(
     (publicId: string) => {
+      setError(null);
+
       setForm((prev) => {
+        if (getTotalImagesCount(prev) <= 1) {
+          setError(
+            "A product must have at least one image.",
+          );
+
+          return prev;
+        }
+
         const nextImages = prev.existingImages.filter(
           (image) => image.publicId !== publicId,
         );
 
         const nextCoverImageId =
           prev.coverImagePublicId === publicId
-            ? (nextImages[0]?.publicId ?? "")
+            ? nextImages[0]?.publicId ?? ""
             : prev.coverImagePublicId;
 
         return {
@@ -217,6 +232,27 @@ export function useProductForm({
     },
     [],
   );
+
+  const removeNewFile = useCallback((index: number) => {
+    setError(null);
+
+    setForm((prev) => {
+      if (getTotalImagesCount(prev) <= 1) {
+        setError(
+          "A product must have at least one image.",
+        );
+
+        return prev;
+      }
+
+      return {
+        ...prev,
+        newFiles: prev.newFiles.filter(
+          (_, currentIndex) => currentIndex !== index,
+        ),
+      };
+    });
+  }, []);
 
   const changeCoverImage = useCallback(
     (publicId: string) => {
@@ -289,12 +325,12 @@ export function useProductForm({
     toggleSize,
     addColor,
     removeColor,
-    addFiles,
 
+    addFiles,
     removeExistingImage,
+    removeNewFile,
     changeCoverImage,
 
     submit,
   };
 }
-
