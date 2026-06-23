@@ -14,6 +14,13 @@ import { customerProductRouter } from "./routes/customer/product.routes";
 import { customerAddressRouter } from "./routes/customer/address.routes";
 import { adminPromoRouter } from "./routes/admin/promo.routes";
 import { customerPromoRouter } from "./routes/customer/promo.routes";
+import { customerCheckoutRouter } from "./routes/customer/checkout.routes";
+import { customerOrderRouter } from "./routes/customer/order.routes";
+import { customerCheckoutWithPointsRouter } from "./routes/customer/checkout-with-points.routes";
+import { adminOrderRouter } from "./routes/admin/order.routes";
+import { adminSettingsRouter } from "./routes/admin/setting.routes";
+import { adminDashboardRouter } from "./routes/admin/dashboard.routes";
+import { customerHomeRouter } from "./routes/customer/home.routes";
 
 async function startServer() {
   await connectDB();
@@ -45,9 +52,16 @@ async function startServer() {
   app.use("/customer", customerProductRouter);
   app.use("/customer", customerAddressRouter);
   app.use("/customer", customerPromoRouter);
+  app.use("/customer", customerCheckoutRouter);
+  app.use("/customer", customerCheckoutWithPointsRouter);
+  app.use("/customer", customerOrderRouter);
+  app.use("/customer", customerHomeRouter);
 
   app.use("/admin", adminProductRouter);
   app.use("/admin", adminPromoRouter);
+  app.use("/admin", adminOrderRouter);
+  app.use("/admin", adminSettingsRouter);
+  app.use("/admin", adminDashboardRouter);
 
   app.use(notFound);
   app.use(errorHandler);

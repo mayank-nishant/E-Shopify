@@ -25,7 +25,7 @@ export function uploadSingleBufferToCloudinary(fileBuffer: Buffer, folder = "e-s
         }
 
         if (!result) {
-          return reject(new Error("Cloudinary upload failed!!!"));
+          return reject(new Error("Cloudinary upload failed...!!!"));
         }
 
         resolve({
