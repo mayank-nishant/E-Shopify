@@ -26,7 +26,7 @@ export function ProductToolbar({ search, onSearchChange, onManageCategories, onA
     <div className={wrapperClass}>
       <div className={searchWrapClass}>
         <Search className={searchIconClass} />
-        <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search products" className={searchInputClass} />
+        <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search Products" className={searchInputClass} />
       </div>
 
       <div className={actionsWrapClass}>

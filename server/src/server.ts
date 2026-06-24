@@ -21,6 +21,7 @@ import { adminOrderRouter } from "./routes/admin/order.routes";
 import { adminSettingsRouter } from "./routes/admin/setting.routes";
 import { adminDashboardRouter } from "./routes/admin/dashboard.routes";
 import { customerHomeRouter } from "./routes/customer/home.routes";
+import { customerCartWishlistRouter } from "./routes/customer/cart-wishlist.routes";
 
 async function startServer() {
   await connectDB();
@@ -52,6 +53,7 @@ async function startServer() {
   app.use("/customer", customerProductRouter);
   app.use("/customer", customerAddressRouter);
   app.use("/customer", customerPromoRouter);
+  app.use("/customer", customerCartWishlistRouter);
   app.use("/customer", customerCheckoutRouter);
   app.use("/customer", customerCheckoutWithPointsRouter);
   app.use("/customer", customerOrderRouter);

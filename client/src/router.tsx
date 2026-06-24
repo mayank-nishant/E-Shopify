@@ -4,7 +4,7 @@ import StoreHome from "./pages/customer/Home";
 import { PublicOnlyLayout } from "./components/auth/PublicOnlyLayout";
 import { SignInPage } from "./pages/auth/Sign-in";
 import { SignUpPage } from "./pages/auth/Sign-up";
-import AdminCoupons from "./pages/admin/Coupons";
+import AdminCoupons from "./pages/admin/Promos";
 import AdminOrders from "./pages/admin/Orders";
 import AdminSettings from "./pages/admin/Settings";
 import AdminProducts from "./pages/admin/Products";

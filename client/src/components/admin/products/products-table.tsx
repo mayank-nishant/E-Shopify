@@ -67,7 +67,7 @@ export function ProductsTable({
           ) : products.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className={stateCellClass}>
-                No products found!!!
+                No Products Found
               </TableCell>
             </TableRow>
           ) : (
