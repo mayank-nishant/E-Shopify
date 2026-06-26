@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { RoleGuardLayout } from "./components/auth/RoleGuardLayout";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
+import Collections from "./pages/customer/Collections";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
           {
             path: "sign-up/*",
             element: <SignUpPage />,
+          },
+          {
+            path: "collections",
+            element: <Collections />,
           },
         ],
       },
