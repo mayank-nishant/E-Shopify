@@ -10,8 +10,8 @@ import { useEffect } from "react";
 import CustomerWishlistDialog from "../wishlist/customer-wishlist-dialog";
 import { useCustomerProfileStore } from "@/features/customer/profile/store";
 import CustomerProfileDialog from "../profile/customer-profile-dialog";
-// import { useCustomerCartAndCheckoutStore } from "@/features/customer/cart-and-checkout/store";
-// import CustomerCartAndCheckoutDrawer from "../cart-and-checkout/customer-cart-and-checkout-drawer";
+import { useCustomerCartAndCheckoutStore } from "@/features/customer/cart-and-checkout/store";
+import CustomerCartAndCheckoutDrawer from "../cart-and-checkout/customer-cart-and-checkout-drawer";
 // import { useCustomerOrdersStore } from "@/features/customer/orders/store";
 // import CustomerOrdersDialog from "../orders/customer-orders-dialog";
 
@@ -72,7 +72,7 @@ export function CustomerNavbar() {
 
     const { openProfile, clear: clearProfile } = useCustomerProfileStore((state: any) => state);
 
-  // const { setOpen, cart, loadCart } = useCustomerCartAndCheckoutStore((state: any) => state);
+  const { setOpen, cart, loadCart } = useCustomerCartAndCheckoutStore((state: any) => state);
 
   //   const { openOrders } = useCustomerOrdersStore((state: any) => state);
 
@@ -80,7 +80,7 @@ export function CustomerNavbar() {
     () => {
       if (!isLoaded || !isBootstrapped) return;
 
-      // void loadCart(Boolean(isSignedIn));
+      void loadCart(Boolean(isSignedIn));
 
       if (!isSignedIn) {
         clearWishlist();
@@ -90,9 +90,7 @@ export function CustomerNavbar() {
 
         void loadWishlist();
     },
-    [clearWishlist, isBootstrapped,  clearProfile,  isSignedIn, isLoaded, loadWishlist, 
-      // loadCart
-    ]
+    [clearWishlist, isBootstrapped,  clearProfile,  isSignedIn, isLoaded, loadWishlist, loadCart]
   );
 
   const showSignInUi = isLoaded && isBootstrapped && isSignedIn;
@@ -147,10 +145,10 @@ export function CustomerNavbar() {
             <NavTextLink href="/sign-in" label="Login" icon={LogIn} />
           )}
 
-          {/* <div onClick={() => setOpen(true)} className={iconLink}>
+          <div onClick={() => setOpen(true)} className={iconLink}>
             <ShoppingCart className="h-4.5 w-4.5" />
             <span className={cartBadge}>{cart?.items?.length}</span>
-          </div> */}
+          </div>
         </nav>
 
         <CustomerMobileNavbar isSignedIn={!!isSignedIn} />
@@ -158,7 +156,7 @@ export function CustomerNavbar() {
         {showSignInUi ? <CustomerWishlistDialog /> : null}
         {showSignInUi ? <CustomerProfileDialog /> : null}
         {/* {showSignInUi ? <CustomerOrdersDialog /> : null} */}
-        {/* <CustomerCartAndCheckoutDrawer /> */}
+        <CustomerCartAndCheckoutDrawer />
       </div>
     </header>
   );

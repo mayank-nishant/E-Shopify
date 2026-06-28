@@ -118,8 +118,6 @@ function waitForRazorpay(timeOut = 4000): Promise<void> {
   });
 }
 
-// helpers
-
 const GUEST_CART_KEY = "guest_cart_items";
 
 function readGuestItems(): GuestCartItem[] {
@@ -389,10 +387,10 @@ export const useCustomerCartAndCheckoutStore =
           promoLoading: false,
         });
 
-        toast.success("Promo successfully applied");
+        toast.success("Promo applied successfully");
       } catch {
         set({ appliedPromo: null, promoLoading: false });
-        toast.success("Unable to apply promo");
+        toast.error("Unable to apply promo");
       }
     },
     clear: () =>
@@ -406,7 +404,7 @@ export const useCustomerCartAndCheckoutStore =
       const { selectedAddressId, appliedPromo, cart } = get();
 
       if (!isSignedIn) {
-        toast.error("sign in to checkout");
+        toast.error("Sign in to checkout");
         return;
       }
 
@@ -435,9 +433,6 @@ export const useCustomerCartAndCheckoutStore =
         ) {
           throw new Error("Invalid checkout session");
         }
-
-        //load the razorpay instance
-
         await waitForRazorpay();
 
         if (!window.Razorpay) {
@@ -448,7 +443,7 @@ export const useCustomerCartAndCheckoutStore =
           amount: session.razorpay.amount,
           currency: session.razorpay.currency,
           order_id: session.razorpay.orderId,
-          name: "Monster E-commerce",
+          name: "E-Shopify",
           description: "Order payment",
           prefill: { name, email },
           handler: async (response) => {
@@ -469,7 +464,7 @@ export const useCustomerCartAndCheckoutStore =
                 ...defaultUiState,
               });
 
-              toast.success("Payment successfull");
+              toast.success("Payment successful");
               onSuccess();
             } catch {
               set({ checkoutLoading: false });
@@ -485,7 +480,7 @@ export const useCustomerCartAndCheckoutStore =
         razorpay.open();
       } catch {
         set({ checkoutLoading: false });
-        toast.error("Unable to start checkout");
+        toast.error("Unable to checkout");
       }
     },
 
@@ -504,7 +499,7 @@ export const useCustomerCartAndCheckoutStore =
       const totalAmount = Math.max(subTotal - discountAmount, 0);
 
       if (!isSignedIn) {
-        toast.error("sign in to checkout");
+        toast.error("Sign in to checkout");
         return;
       }
 
@@ -542,11 +537,11 @@ export const useCustomerCartAndCheckoutStore =
           points: response.totalPoints ?? Math.max(points - totalAmount, 0),
         });
 
-        toast.success("Order places");
+        toast.success("Order placed successfully");
         onSuccess();
       } catch {
         set({ pointsCheckoutLoading: false });
-        toast.success("failed to place order with points");
+        toast.error("Failed to place order with points");
       }
     },
   }));

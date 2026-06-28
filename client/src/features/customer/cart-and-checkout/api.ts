@@ -63,8 +63,6 @@ export async function syncCustomerCart(body: SyncCustomerCartBody) {
   );
 }
 
-// checkout apis
-
 export async function getCheckoutPoints() {
   return apiGet<CheckoutPointsResponse>("/customer/checkout/points");
 }
