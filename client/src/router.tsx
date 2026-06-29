@@ -14,6 +14,7 @@ import { RoleGuardLayout } from "./components/auth/RoleGuardLayout";
 import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Collections from "./pages/customer/Collections";
 import CollectionDetails from "./pages/customer/Collection-Details";
+import CustomerOrderSuccessPage from "./pages/customer/Order-Success";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,14 @@ export const router = createBrowserRouter([
           {
             path: "collection/:id",
             element: <CollectionDetails />,
+          },
+        ],
+      },{
+        element: <ProtectedLayout />,
+        children: [
+          {
+            path: "order-success",
+            element: <CustomerOrderSuccessPage />,
           },
         ],
       },

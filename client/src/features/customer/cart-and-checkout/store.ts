@@ -94,34 +94,10 @@ const defaultUiState = {
   pointsCheckoutLoading: false,
 };
 
-function waitForRazorpay(timeOut = 4000): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) {
-      resolve();
-      return;
-    }
-
-    const start = Date.now();
-
-    const interval = window.setInterval(() => {
-      if (window.Razorpay) {
-        window.clearInterval(interval);
-        resolve();
-        return;
-      }
-
-      if (Date.now() - start > timeOut) {
-        window.clearInterval(interval);
-        reject(new Error("Razorpay not loaded"));
-      }
-    }, 30);
-  });
-}
-
 const GUEST_CART_KEY = "guest_cart_items";
 
 function readGuestItems(): GuestCartItem[] {
-  if (typeof window === undefined) return [];
+  if (typeof window === "undefined") return [];
 
   try {
     const items = JSON.parse(
@@ -140,13 +116,13 @@ function readGuestItems(): GuestCartItem[] {
 }
 
 function writeGuestItems(items: GuestCartItem[]) {
-  if (typeof window === undefined) return;
+  if (typeof window === "undefined") return;
 
   window.localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
 }
 
 function clearGuestItems() {
-  if (typeof window === undefined) return;
+  if (typeof window === "undefined") return;
   window.localStorage.removeItem(GUEST_CART_KEY);
 }
 
@@ -371,6 +347,10 @@ export const useCustomerCartAndCheckoutStore =
 
       try {
         set({ promoLoading: true });
+        console.log({
+          code: promoInput.trim(),
+          orderValue: subtotal,
+        });
         const response = await applyCustomerPromo({
           code: promoInput.trim(),
           orderValue: subtotal,
@@ -388,9 +368,19 @@ export const useCustomerCartAndCheckoutStore =
         });
 
         toast.success("Promo applied successfully");
-      } catch {
-        set({ appliedPromo: null, promoLoading: false });
-        toast.error("Unable to apply promo");
+      } catch (error: any) {
+        console.error(error);
+        console.error(error.response?.data);
+
+        set({
+          appliedPromo: null,
+          promoLoading: false,
+        });
+
+        toast.error(
+          error.response?.data?.message ??
+            "Unable to apply promo"
+        );
       }
     },
     clear: () =>
@@ -426,6 +416,8 @@ export const useCustomerCartAndCheckoutStore =
           promoCode: appliedPromo?.code || undefined,
         });
 
+        console.log("Checkout Session", session);
+
         if (
           !session.razorpay?.keyId ||
           !session.razorpay.orderId ||
@@ -433,11 +425,13 @@ export const useCustomerCartAndCheckoutStore =
         ) {
           throw new Error("Invalid checkout session");
         }
-        await waitForRazorpay();
 
         if (!window.Razorpay) {
-          throw new Error("Razorpay not loaded");
+          throw new Error("Razorpay SDK failed to load");
         }
+
+        console.log("Creating Razorpay instance...");
+
         const razorpay = new window.Razorpay({
           key: session.razorpay.keyId,
           amount: session.razorpay.amount,
@@ -466,9 +460,16 @@ export const useCustomerCartAndCheckoutStore =
 
               toast.success("Payment successful");
               onSuccess();
-            } catch {
+            } catch (error) {
+              console.error("Payment Confirmation:", error);
+
               set({ checkoutLoading: false });
-              toast.error("Payment confirmation failed");
+
+              toast.error(
+                error instanceof Error
+                  ? error.message
+                  : "Payment confirmation failed",
+              );
             }
           },
 
@@ -477,10 +478,29 @@ export const useCustomerCartAndCheckoutStore =
           },
         });
 
+        console.log("Opening Razorpay...");
+
+        razorpay.on("payment.failed", (response) => {
+          console.error("Payment Failed:", response.error);
+
+          toast.error(response.error.description);
+
+          set({
+            checkoutLoading: false,
+          });
+        });       
+
         razorpay.open();
-      } catch {
+      } catch (error) {
+        console.error("Checkout Error:", error);
+
         set({ checkoutLoading: false });
-        toast.error("Unable to checkout");
+
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to checkout",
+          );
       }
     },
 
