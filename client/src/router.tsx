@@ -1,17 +1,17 @@
 import { createBrowserRouter } from "react-router-dom";
 import { CustomerLayout } from "./components/layout/CustomerLayout";
-import StoreHome from "./pages/customer/Home";
+import { StoreHome } from "./pages/customer/Home";
 import { PublicOnlyLayout } from "./components/auth/PublicOnlyLayout";
 import { SignInPage } from "./pages/auth/Sign-in";
 import { SignUpPage } from "./pages/auth/Sign-up";
+import { ProtectedLayout } from "./components/auth/ProtectedLayout";
+import { RoleGuardLayout } from "./components/auth/RoleGuardLayout";
+import { AdminLayout } from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/Products";
 import AdminCoupons from "./pages/admin/Promos";
 import AdminOrders from "./pages/admin/Orders";
 import AdminSettings from "./pages/admin/Settings";
-import AdminProducts from "./pages/admin/Products";
-import AdminDashboard from "./pages/admin/Dashboard";
-import { AdminLayout } from "./components/layout/AdminLayout";
-import { RoleGuardLayout } from "./components/auth/RoleGuardLayout";
-import { ProtectedLayout } from "./components/auth/ProtectedLayout";
 import Collections from "./pages/customer/Collections";
 import CollectionDetails from "./pages/customer/Collection-Details";
 import CustomerOrderSuccessPage from "./pages/customer/Order-Success";
@@ -45,7 +45,8 @@ export const router = createBrowserRouter([
             element: <CollectionDetails />,
           },
         ],
-      },{
+      },
+      {
         element: <ProtectedLayout />,
         children: [
           {
